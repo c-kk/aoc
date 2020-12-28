@@ -1,0 +1,16 @@
+$ cat get_input.py
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser(description='Read input')
+parser.add_argument('day', type=int)
+parser.add_argument('--year', type=int, default=2019)
+args = parser.parse_args()
+
+cmd = 'curl https://adventofcode.com/{}/day/{}/input --cookie "session=SESSION"'.format(
+        args.year, args.day)
+output = subprocess.check_output(cmd, shell=True)
+print(output.decode('utf-8'), end='')
+
+You have to replace SESSION with your own, which you can find like so:
+https://www.reddit.com/r/adventofcode/comments/a2vonl/how_to_download_inputs_with_a_script/
