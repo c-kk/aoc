@@ -1,5 +1,5 @@
 from itertools import permutations
-import luca2 as luca
+import luca
 
 # phase_settings_orders = list(permutations(range(0, 5), 5)) # Part 1
 phase_settings_orders = list(permutations(range(5, 10), 5)) # Part 2
