@@ -2,6 +2,21 @@ import numpy as np
 import copy
 import luca
 
+def print_area(area):
+	xs = [item[0] for item in area]
+	ys = [item[1] for item in area]
+
+	xr = range(min(xs), max(xs) + 1)
+	yr = range(min(ys), max(ys) + 1)
+
+	s = ''
+	for y in yr:
+		for x in xr:
+			s += '#.O '[area.get((x, y), 3)]
+		s += '\n'
+	# s = '\n'.join(''.join('#.O '[area.get((x, y), 3)] for x in xr) for y in yr)
+	print(s + '\n')
+
 def convert_to_numpy_area(area):
 	keys = np.array(list(area.keys()))
 	xs, ys = keys[:,0], keys[:,1]
@@ -30,7 +45,7 @@ def breadth_first_search():
 
 		for command, move in {1: (0, 1), 2: (0, -1), 3: (-1, 0), 4: (1, 0)}.items():
 			# Calculate new position
-			nw_pos  = tuple(np.add(path[-1], move))
+			nw_pos  = tuple(map(sum, zip(path[-1], move)))
 			nw_path = path + [nw_pos]
 
 			# Continue if already seen position
@@ -45,8 +60,10 @@ def breadth_first_search():
 			area[nw_pos] = char
 
 			# Print area
+			# picture(area, 40, 40)
+			print_area(area)
 			np_area = convert_to_numpy_area(area)
-			print_numpy_area(np_area)
+			# print_numpy_area(np_area)
 
 			# Continue when a wall is hit
 			if char == 0:
@@ -68,9 +85,14 @@ print(f'Shortest path found in {len(path) - 1} commands')
 print(f'Oxygen system is at pos {path[-1]}')
 
 # Part 2
+# def neighbors(cell):
+#     (x, y) = cell
+#     return [(x, y-1), (x-1, y), (x+1, y), (x, y+1)]
+# exit()
 def fill_area(np_area):
 	shape = np_area.shape
 	nw_area = np.copy(np_area)
+
 	for (x, y), number in np.ndenumerate(np_area):
 		if number != 2:
 			continue
