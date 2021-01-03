@@ -3,6 +3,15 @@ import os
 import sys
 import contextlib
 
+@contextlib.contextmanager
+def silence(enabled=True):
+    if enabled:
+        with open(os.devnull, 'w') as devnull:
+            with contextlib.redirect_stdout(devnull):
+                yield
+    else:
+        yield
+
 @attr.s
 class Program:
     mem = attr.ib() # Memory
@@ -70,43 +79,43 @@ def store_by_mode(mem, instr, rba, index, value):
     mem[pos] = value
     return mem, pos
 
-def add(mem, pos, rba, dbg):
+def add(mem, pos, rba):
     instr  = mem[pos:pos+4]
     value1 = get_value_by_mode(mem, instr, rba, 1)
     value2 = get_value_by_mode(mem, instr, rba, 2)
     nw_pos = pos + len(instr)
     result = value1 + value2
     mem, store = store_by_mode(mem, instr, rba, 3, result)
-    if dbg: print_instr(pos, instr, f'ADD {value1} + {value2}.', f'Store {result} at {store}')
+    print_instr(pos, instr, f'ADD {value1} + {value2}.', f'Store {result} at {store}')
     return mem, nw_pos
     
-def multiply(mem, pos, rba, dbg):
+def multiply(mem, pos, rba):
     instr  = mem[pos:pos+4]
     value1 = get_value_by_mode(mem, instr, rba, 1)
     value2 = get_value_by_mode(mem, instr, rba, 2)
     nw_pos = pos + len(instr)
     result = value1 * value2
     mem, store = store_by_mode(mem, instr, rba, 3, result)
-    if dbg: print_instr(pos, instr, f'MUL {value1} * {value2}.', f'Store {result} at {store}')
+    print_instr(pos, instr, f'MUL {value1} * {value2}.', f'Store {result} at {store}')
     return mem, nw_pos
 
-def store_input(mem, pos, rba, dbg, inp):
+def store_input(mem, pos, rba, inp):
     instr  = mem[pos:pos+2]
     nw_pos = pos + len(instr)
     value  = inp.pop(0)
     mem, store = store_by_mode(mem, instr, rba, 1, value)
-    if dbg: print_instr(pos, instr, f'STO Input {value}.', f'Store {value} at {store}')
+    print_instr(pos, instr, f'STO Input {value}.', f'Store {value} at {store}')
     return mem, nw_pos, inp
 
-def output(mem, pos, rba, dbg, out):
+def output(mem, pos, rba, out):
     instr  = mem[pos:pos+2]
     value  = get_value_by_mode(mem, instr, rba, 1)
     nw_pos = pos + len(instr)
     out.append(value)
-    if dbg: print_instr(pos, instr, f'OUT Mem {value}.', f'Store {value} at output {len(out)-1}')
+    print_instr(pos, instr, f'OUT Mem {value}.', f'Store {value} at output {len(out)-1}')
     return mem, nw_pos, out
 
-def jump_if_true(mem, pos, rba, dbg):
+def jump_if_true(mem, pos, rba):
     instr   = mem[pos:pos+3]
     value   = get_value_by_mode(mem, instr, rba, 1)
     jump_to = get_value_by_mode(mem, instr, rba, 2)
@@ -116,10 +125,10 @@ def jump_if_true(mem, pos, rba, dbg):
         msg = f'Jump to {jump_to}'
     else:
         msg = 'No jump'
-    if dbg: print_instr(pos, instr, f'JTR Compare {value} != 0.', msg)
+    print_instr(pos, instr, f'JTR Compare {value} != 0.', msg)
     return mem, nw_pos
 
-def jump_if_false(mem, pos, rba, dbg):
+def jump_if_false(mem, pos, rba):
     instr   = mem[pos:pos+3]
     value   = get_value_by_mode(mem, instr, rba, 1)
     jump_to = get_value_by_mode(mem, instr, rba, 2)
@@ -129,50 +138,49 @@ def jump_if_false(mem, pos, rba, dbg):
         msg = f'Jump to {jump_to}'
     else:
         msg = 'No jump'
-    if dbg: print_instr(pos, instr, f'JFA Compare {value} == 0.', msg)
+    print_instr(pos, instr, f'JFA Compare {value} == 0.', msg)
     return mem, nw_pos
 
-def less_than(mem, pos, rba, dbg):
+def less_than(mem, pos, rba):
     instr  = mem[pos:pos+4]
     value1 = get_value_by_mode(mem, instr, rba, 1)
     value2 = get_value_by_mode(mem, instr, rba, 2)
     nw_pos = pos + len(instr)
     result = int(value1 < value2)
     mem, store = store_by_mode(mem, instr, rba, 3, result)
-    if dbg: print_instr(pos, instr, f'LES Compare {value1} < {value2}.', f'Store {result} at {store}')
+    print_instr(pos, instr, f'LES Compare {value1} < {value2}.', f'Store {result} at {store}')
     return mem, nw_pos
 
-def equals(mem, pos, rba, dbg):
+def equals(mem, pos, rba):
     instr  = mem[pos:pos+4]
     value1 = get_value_by_mode(mem, instr, rba, 1)
     value2 = get_value_by_mode(mem, instr, rba, 2)
     nw_pos = pos + len(instr)
     result = int(value1 == value2)
     mem, store = store_by_mode(mem, instr, rba, 3, result)
-    if dbg: print_instr(pos, instr, f'EQU Compare {value1} == {value2}.', f'Store {result} at {store}')
+    print_instr(pos, instr, f'EQU Compare {value1} == {value2}.', f'Store {result} at {store}')
     return mem, nw_pos
 
-def adjust_rba(mem, pos, rba, dbg):
+def adjust_rba(mem, pos, rba):
     instr  = mem[pos:pos+2]
     value  = get_value_by_mode(mem, instr, rba, 1)
     nw_pos = pos + len(instr)
     nw_rba = rba + value
-    if dbg: print_instr(pos, instr, f'ARB {rba} + {value}.', f'Set relative base to {nw_rba}')
+    print_instr(pos, instr, f'ARB {rba} + {value}.', f'Set relative base to {nw_rba}')
     return mem, nw_pos, nw_rba
 
 def create_run(**params):
     return run(Program(**params))
 
 def run(program: Program, debug=True):
-    mem = program.mem
-    des = program.des
-    inp = program.inp
-    out = program.out
-    pos = program.pos
-    rba = program.rba
-    dbg = debug
+    with silence(not debug):
+        mem = program.mem
+        des = program.des
+        inp = program.inp
+        out = program.out
+        pos = program.pos
+        rba = program.rba
 
-    if dbg:
         print('Run Luca program')
         print(f'├ {des}')
         print(f'├ inp {inp}')
@@ -180,23 +188,22 @@ def run(program: Program, debug=True):
         print_mem(mem)
         print(f'├ steps') 
 
-    while True:
-        opc = mem[pos] % 100
+        while True:
+            opc = mem[pos] % 100
 
-        needs_input = opc == 3 and len(inp) == 0
-        if opc == 99 or needs_input: 
-            if dbg:
+            needs_input = opc == 3 and len(inp) == 0
+            if opc == 99 or needs_input: 
                 print(f'{pos:5}: {opc:5}')
                 print(f'├ out {out}\n')
-            return Program(mem, des, inp, out, pos, rba, opc)
+                return Program(mem, des, inp, out, pos, rba, opc)
 
-        elif opc == 1: mem, pos = add(mem, pos, rba, dbg)
-        elif opc == 2: mem, pos = multiply(mem, pos, rba, dbg)
-        elif opc == 3: mem, pos, inp = store_input(mem, pos, rba, dbg, inp) 
-        elif opc == 4: mem, pos, out = output(mem, pos, rba, dbg, out)   
-        elif opc == 5: mem, pos = jump_if_true(mem, pos, rba, dbg) 
-        elif opc == 6: mem, pos = jump_if_false(mem, pos, rba, dbg) 
-        elif opc == 7: mem, pos = less_than(mem, pos, rba, dbg) 
-        elif opc == 8: mem, pos = equals(mem, pos, rba, dbg) 
-        elif opc == 9: mem, pos, rba = adjust_rba(mem, pos, rba, dbg) 
-        else: raise Exception(f'Unknown opcode {opc} at pos {pos} with mem {mem[pos:pos+4]}')
+            elif opc == 1: mem, pos = add(mem, pos, rba)
+            elif opc == 2: mem, pos = multiply(mem, pos, rba)
+            elif opc == 3: mem, pos, inp = store_input(mem, pos, rba, inp) 
+            elif opc == 4: mem, pos, out = output(mem, pos, rba, out)   
+            elif opc == 5: mem, pos = jump_if_true(mem, pos, rba) 
+            elif opc == 6: mem, pos = jump_if_false(mem, pos, rba) 
+            elif opc == 7: mem, pos = less_than(mem, pos, rba) 
+            elif opc == 8: mem, pos = equals(mem, pos, rba) 
+            elif opc == 9: mem, pos, rba = adjust_rba(mem, pos, rba) 
+            else: raise Exception(f'Unknown opcode {opc} at pos {pos} with mem {mem[pos:pos+4]}')
