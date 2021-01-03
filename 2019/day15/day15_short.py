@@ -1,9 +1,6 @@
 import sys
 sys.path.insert(0, '../..')
-from lib import luca, dictxy, tprint, timing
-
-def area_string(area):
-	return dictxy.to_string(area, gap_value=3, chars='#.O ')
+from lib import luca, timing
 
 # Part 1
 droid_paths = [[
@@ -11,51 +8,20 @@ droid_paths = [[
 	[(0,0)],
 ]]
 area = {(0,0): 1}
-block = tprint.Block()
 
 while droid_paths:
 	[droid, path] = droid_paths.pop(0)
-
 	for command, move in {1: (0, 1), 2: (0, -1), 3: (-1, 0), 4: (1, 0)}.items():
-		# Calculate new position
-		nw_pos  = tuple(map(lambda x, y: x + y, path[-1], move))
-		nw_path = path + [nw_pos]
-
-		# Continue if already seen position
-		if nw_pos in area.keys():
-			continue
-
-		# Create new droid and receive character
-		nw_droid = luca.Program(
-			mem=droid.mem.copy(), 
-			pos=droid.pos, 
-			rba=droid.rba, 
-			inp=[command], 
-		)
-		char = luca.run(nw_droid, debug=False).out[0]
-		area[nw_pos] = char
-
-		# Print area
-		block.print(area_string(area))
-		
-		# Continue when a wall is hit
-		if char == 0:
-			continue
-
-		# Save path when goal is reached
-		if char == 2:
-			shortest_path = nw_path
-
-		# Save droid path		
-		droid_paths.append([nw_droid, nw_path])
-
-print(f'Shortest path found in {len(shortest_path) - 1} commands')
-print(f'Oxygen system is at pos {shortest_path[-1]}')
-timing.log("Part 1")
-print()
+		nw_pos = tuple(map(lambda x, y: x + y, path[-1], move))
+		if nw_pos in area.keys(): continue
+		nw_droid = luca.Program(mem=droid.mem.copy(), pos=droid.pos, rba=droid.rba, inp=[command])
+		area[nw_pos] = luca.run(nw_droid, False).out[0]
+		if area[nw_pos] == 0: continue
+		if area[nw_pos] == 2: shortest_path = path + [nw_pos]
+		droid_paths.append([nw_droid, path + [nw_pos]])
+print(len(shortest_path) - 1)
 
 # Part 2
-block = tprint.Block()
 minutes = 0
 while 1 in area.values():
 	nw_area = area.copy()
@@ -65,8 +31,5 @@ while 1 in area.values():
 				if area.get(neighbor, 3) == 1:
 					nw_area[neighbor] = 2
 	area = nw_area
-	block.print(area_string(area))
 	minutes += 1
-
-print(f'Area filled with oxygen in {minutes} minutes')
-timing.log("Part 2")
+print(minutes)
