@@ -1,37 +1,16 @@
+import sys
+sys.path.insert(0, '../..')
+
 import numpy as np
 import copy
 import luca
+import tprint
+from lib import dictxy
+from lib import timing
 
 def print_area(area):
-	xs = [item[0] for item in area]
-	ys = [item[1] for item in area]
-
-	xr = range(min(xs), max(xs) + 1)
-	yr = range(min(ys), max(ys) + 1)
-
-	s = ''
-	for y in yr:
-		for x in xr:
-			s += '#.O '[area.get((x, y), 3)]
-		s += '\n'
-	# s = '\n'.join(''.join('#.O '[area.get((x, y), 3)] for x in xr) for y in yr)
-	print(s + '\n')
-
-def convert_to_numpy_area(area):
-	keys = np.array(list(area.keys()))
-	xs, ys = keys[:,0], keys[:,1]
-	xmin, xmax, ymin, ymax = min(xs), max(xs), min(ys), max(ys)
-	xlen, ylen = xmax - xmin + 1, ymax - ymin + 1
-	
-	np_area = np.full((ylen, xlen), 3) 
-	for (x, y), number in area.items():
-		np_area[y - ymin, x - xmin] = number
-
-	return np_area
-
-def print_numpy_area(np_area):
-	s = '\n'.join(''.join('#.O '[cell] for cell in row) for row in np_area)
-	print(s + '\n')
+	# print(chr(27) + "[1;1f") # Move cursor to top
+	print(dictxy.to_string(area, gap_value=3, chars='#.O '), '\n')
 
 def breadth_first_search():
 	droid_paths = [[
@@ -45,26 +24,27 @@ def breadth_first_search():
 
 		for command, move in {1: (0, 1), 2: (0, -1), 3: (-1, 0), 4: (1, 0)}.items():
 			# Calculate new position
-			nw_pos  = tuple(map(sum, zip(path[-1], move)))
+			nw_pos  = tuple(map(lambda x, y: x + y, path[-1], move))
 			nw_path = path + [nw_pos]
 
 			# Continue if already seen position
 			if nw_pos in area.keys():
 				continue
 	
-			# Send move to droid and receive character
-			nw_droid     = copy.deepcopy(droid)
-			nw_droid.inp = [command]
-			nw_droid     = luca.run(nw_droid, debug=False)
-			char         = nw_droid.out.pop(0)
+			# Create new droid and receive character
+			nw_droid = luca.Program(
+				mem=copy.copy(droid.mem), 
+				pos=droid.pos, 
+				rba=droid.rba, 
+				inp=[command], 
+			)
+
+			char = luca.run(nw_droid, debug=False).out[0]
 			area[nw_pos] = char
 
 			# Print area
-			# picture(area, 40, 40)
 			print_area(area)
-			np_area = convert_to_numpy_area(area)
-			# print_numpy_area(np_area)
-
+			
 			# Continue when a wall is hit
 			if char == 0:
 				continue
@@ -76,37 +56,29 @@ def breadth_first_search():
 			# Save droid path		
 			droid_paths.append([nw_droid, nw_path])
 
-	return shortest_path, np_area
+	return shortest_path, area
 
-# Part 1					
-path, np_area = breadth_first_search()
-print_numpy_area(np_area)
+# Part 1
+block = tprint.Block()
+
+# print(chr(27) + "[2J") # Clear	
+path, area = breadth_first_search()
 print(f'Shortest path found in {len(path) - 1} commands')
 print(f'Oxygen system is at pos {path[-1]}')
+timing.between("Part 1 finished")
 
 # Part 2
-# def neighbors(cell):
-#     (x, y) = cell
-#     return [(x, y-1), (x-1, y), (x+1, y), (x, y+1)]
-# exit()
-def fill_area(np_area):
-	shape = np_area.shape
-	nw_area = np.copy(np_area)
-
-	for (x, y), number in np.ndenumerate(np_area):
-		if number != 2:
-			continue
-
-		for x, y in [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]:
-			if 0 <= x <= shape[0] and 0 <= y <= shape[1]: 
-				if nw_area[x, y] == 1:
-					nw_area[x, y] = 2
-	return nw_area
-
+# print(chr(27) + "[2J") # Clear	
 minutes = 0
-while 1 in np_area:
-	np_area = fill_area(np_area)
-	print_numpy_area(np_area)
+while 1 in area.values():
+	nw_area = area.copy()
+	for (x, y), value in area.items():
+		if value == 2:
+			for neighbor in [(x, y-1), (x-1, y), (x+1, y), (x, y+1)]:
+				if area.get(neighbor, 3) == 1:
+					nw_area[neighbor] = 2
+	area = nw_area
+	print_area(area)
 	minutes += 1
 
 print(f'Area filled with oxygen in {minutes} minutes')
