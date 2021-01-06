@@ -86,102 +86,122 @@ def run(program: Program, debug=True):
         print_mem(mem)
         print(f'├ steps') 
 
+    def add(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 4
+        [pm1, pm2, pm3] = mem[pos+1:nw_pos]
+        value1 = get_value(mem, pm1, rba, md1)
+        value2 = get_value(mem, pm2, rba, md2)
+        result = value1 + value2
+        mem, store = store_value(mem, pm3, rba, md3, result)
+        if dbg: print_instr(pos, [pm1, pm2, pm3], f'ADD {value1} + {value2}.', f'Store {result} at {store}')
+        return mem, nw_pos, rba, inp, out, 0 
+
+    def mul(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 4
+        [pm1, pm2, pm3] = mem[pos+1:nw_pos]
+        value1 = get_value(mem, pm1, rba, md1)
+        value2 = get_value(mem, pm2, rba, md2)
+        result = value1 * value2
+        mem, store = store_value(mem, pm3, rba, md3, result)
+        if dbg: print_instr(pos, [pm1, pm2, pm3], f'MUL {value1} * {value2}.', f'Store {result} at {store}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def sto(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        if len(inp) == 0:
+            return mem, pos, rba, inp, out, 1
+        nw_pos = pos + 2
+        [pm1]  = mem[pos+1:nw_pos]
+        value  = inp.pop(0)
+        mem, store = store_value(mem, pm1, rba, md1, value)
+        if dbg: print_instr(pos, [pm1], f'STO Input {value}.', f'Store {value} at {store}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def otp(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 2
+        [pm1]  = mem[pos+1:nw_pos]
+        value  = get_value(mem, pm1, rba, md1)
+        out.append(value)
+        if dbg: print_instr(pos, [pm1], f'OUT Mem {value}.', f'Store {value} at output {len(out)-1}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def jtr(mem, pos, rba, md1, md2, md3, inp, out, dbg): 
+        nw_pos = pos + 3
+        [pm1, pm2] = mem[pos+1:nw_pos]
+        value = get_value(mem, pm1, rba, md1)
+        if value != 0: 
+            nw_pos = get_value(mem, pm2, rba, md2)
+        if dbg: 
+            msg = f'Jump to {nw_pos}' if value != 0 else 'No jump'
+            print_instr(pos, [pm1, pm2], f'JTR Compare {value} != 0.', msg)
+        return mem, nw_pos, rba, inp, out, 0
+
+    def jfa(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 3
+        [pm1, pm2] = mem[pos+1:nw_pos]
+        value = get_value(mem, pm1, rba, md1)
+        if value == 0: 
+            nw_pos = get_value(mem, pm2, rba, md2)
+        if dbg: 
+            msg = f'Jump to {nw_pos}' if value == 0 else 'No jump'
+            print_instr(pos, [pm1, pm2], f'JFA Compare {value} == 0.', msg)
+        return mem, nw_pos, rba, inp, out, 0
+
+    def les(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 4
+        [pm1, pm2, pm3] = mem[pos+1:nw_pos]
+        value1 = get_value(mem, pm1, rba, md1)
+        value2 = get_value(mem, pm2, rba, md2)
+        result = int(value1 < value2)
+        mem, store = store_value(mem, pm3, rba, md3, result)
+        if dbg: print_instr(pos, [pm1, pm2, pm3], f'LES Compare {value1} < {value2}.', f'Store {result} at {store}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def equ(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 4
+        [pm1, pm2, pm3] = mem[pos+1:nw_pos]
+        value1 = get_value(mem, pm1, rba, md1)
+        value2 = get_value(mem, pm2, rba, md2)
+        result = int(value1 == value2)
+        mem, store = store_value(mem, pm3, rba, md3, result)
+        if dbg: print_instr(pos, [pm1, pm2, pm3], f'EQU Compare {value1} == {value2}.', f'Store {result} at {store}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def arb(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        nw_pos = pos + 2
+        [pm1]  = mem[pos+1:nw_pos]
+        value  = get_value(mem, pm1, rba, md1)
+        rba   += value
+        if dbg: print_instr(pos, [pm1], f'ARB {rba} + {value}.', f'Set relative base to {rba}')
+        return mem, nw_pos, rba, inp, out, 0
+
+    def ext(mem, pos, rba, md1, md2, md3, inp, out, dbg):
+        return mem, pos, rba, inp, out, 1
+
+    opc_lookup = {
+        1: add,
+        2: mul,
+        3: sto,
+        4: otp,
+        5: jtr,
+        6: jfa,
+        7: les,
+        8: equ,
+        9: arb,
+        99: ext,
+    }
+
     while True:
         opcm = mem[pos]
         md3, rm3 = opcm // 10000, opcm % 10000
         md2, rm2 = rm3 // 1000, rm3 % 1000
         md1, opc = rm2 // 100, rm2 % 100
 
-        if opc == 1: 
-            nw_pos = pos + 4
-            [pm1, pm2, pm3] = mem[pos+1:nw_pos]
-            value1 = get_value(mem, pm1, rba, md1)
-            value2 = get_value(mem, pm2, rba, md2)
-            result = value1 + value2
-            mem, store = store_value(mem, pm3, rba, md3, result)
-            if dbg: print_instr(pos, [pm1, pm2, pm3], f'ADD {value1} + {value2}.', f'Store {result} at {store}')
-
-        elif opc == 2:
-            nw_pos = pos + 4
-            [pm1, pm2, pm3] = mem[pos+1:nw_pos]
-            value1 = get_value(mem, pm1, rba, md1)
-            value2 = get_value(mem, pm2, rba, md2)
-            result = value1 * value2
-            mem, store = store_value(mem, pm3, rba, md3, result)
-            if dbg: print_instr(pos, [pm1, pm2, pm3], f'MUL {value1} * {value2}.', f'Store {result} at {store}')
-
-        elif opc == 3: 
-            if len(inp) == 0:
-                if dbg:
-                    print(f'{pos:5}: {opc:5}')
-                    print(f'├ out {out}\n')
-                return Program(mem, des, inp, out, pos, rba, opc)
-            nw_pos = pos + 2
-            [pm1]  = mem[pos+1:nw_pos]
-            value  = inp.pop(0)
-            mem, store = store_value(mem, pm1, rba, md1, value)
-            if dbg: print_instr(pos, [pm1], f'STO Input {value}.', f'Store {value} at {store}')
-
-        elif opc == 4: 
-            nw_pos = pos + 2
-            [pm1]  = mem[pos+1:nw_pos]
-            value  = get_value(mem, pm1, rba, md1)
-            out.append(value)
-            if dbg: print_instr(pos, [pm1], f'OUT Mem {value}.', f'Store {value} at output {len(out)-1}')
-
-        elif opc == 5: 
-            nw_pos = pos + 3
-            [pm1, pm2] = mem[pos+1:nw_pos]
-            value = get_value(mem, pm1, rba, md1)
-            if value != 0: 
-                nw_pos = get_value(mem, pm2, rba, md2)
-            if dbg: 
-                msg = f'Jump to {nw_pos}' if value != 0 else 'No jump'
-                print_instr(pos, [pm1, pm2], f'JTR Compare {value} != 0.', msg)
-
-        elif opc == 6: 
-            nw_pos = pos + 3
-            [pm1, pm2] = mem[pos+1:nw_pos]
-            value = get_value(mem, pm1, rba, md1)
-            if value == 0: 
-                nw_pos = get_value(mem, pm2, rba, md2)
-            if dbg: 
-                msg = f'Jump to {nw_pos}' if value == 0 else 'No jump'
-                print_instr(pos, [pm1, pm2], f'JFA Compare {value} == 0.', msg)
-
-        elif opc == 7: 
-            nw_pos = pos + 4
-            [pm1, pm2, pm3] = mem[pos+1:nw_pos]
-            value1 = get_value(mem, pm1, rba, md1)
-            value2 = get_value(mem, pm2, rba, md2)
-            result = int(value1 < value2)
-            mem, store = store_value(mem, pm3, rba, md3, result)
-            if dbg: print_instr(pos, [pm1, pm2, pm3], f'LES Compare {value1} < {value2}.', f'Store {result} at {store}')
-
-        elif opc == 8:
-            nw_pos = pos + 4
-            [pm1, pm2, pm3] = mem[pos+1:nw_pos]
-            value1 = get_value(mem, pm1, rba, md1)
-            value2 = get_value(mem, pm2, rba, md2)
-            result = int(value1 == value2)
-            mem, store = store_value(mem, pm3, rba, md3, result)
-            if dbg: print_instr(pos, [pm1, pm2, pm3], f'EQU Compare {value1} == {value2}.', f'Store {result} at {store}')
-
-        elif opc == 9: 
-            nw_pos = pos + 2
-            [pm1]  = mem[pos+1:nw_pos]
-            value  = get_value(mem, pm1, rba, md1)
-            rba   += value
-            if dbg: print_instr(pos, [pm1], f'ARB {rba} + {value}.', f'Set relative base to {rba}')
-
-        elif opc == 99: 
+        mem, pos, rba, inp, out, fin = opc_lookup.get(opc)(mem, pos, rba, md1, md2, md3, inp, out, dbg)
+        if fin:
             if dbg:
                 print(f'{pos:5}: {opc:5}')
                 print(f'├ out {out}\n')
             return Program(mem, des, inp, out, pos, rba, opc)
-
-        else: raise Exception(f'Unknown opcode {opc} at pos {pos} with mem {mem[pos:pos+4]}')
-        pos = nw_pos
 
 if __name__ == "__main__":
     # Run tests
