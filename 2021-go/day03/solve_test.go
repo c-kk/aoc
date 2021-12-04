@@ -18,7 +18,7 @@ const puzzleInput string =
 00010
 01010`
 const correctAnswer1 int = 198 
-const correctAnswer2 int = 0 
+const correctAnswer2 int = 230 
 
 func TestAnswer1(t *testing.T) {
     answer1 := Answer1(puzzleInput)

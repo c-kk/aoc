@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 	"strings"
+	"strconv"
 )
 
 func main() {
@@ -40,10 +41,76 @@ func Answer1(puzzleInput string) int {
             // fmt.Println("epsilon", epsilon)
         }
     }
-
+    
     return gamma * epsilon
 }
 
 func Answer2(puzzleInput string) int {
-    return 0
+    lines := strings.Split(string(puzzleInput), "\n")
+    var oxygen int64
+    var scrubber int64
+
+    position := 0
+    sum := 0
+    currentLines := lines
+    var newLines0 []string
+    var newLines1 []string
+
+    for {
+        for _, line := range currentLines {
+            if string(line[position]) == "1" {
+                sum += 1
+                newLines1 = append(newLines1, line)
+            } else {
+                newLines0 = append(newLines0, line)
+            }
+        }
+
+        position += 1
+        if len(newLines1) >= len(newLines0) {
+            currentLines = newLines1
+        } else {
+            currentLines = newLines0
+        }
+        // fmt.Println("0", newLines0)
+        // fmt.Println("1", newLines1)
+        newLines0 = newLines0[:0]
+        newLines1 = newLines1[:0]
+        if len(currentLines) == 1 {
+            oxygen, _ = strconv.ParseInt(currentLines[0], 2, 64)
+            break
+        }
+    }
+
+    position = 0
+    sum = 0
+    currentLines = lines
+
+    for {
+        for _, line := range currentLines {
+            if string(line[position]) == "1" {
+                sum += 1
+                newLines1 = append(newLines1, line)
+            } else {
+                newLines0 = append(newLines0, line)
+            }
+        }
+
+        position += 1
+        if len(newLines1) >= len(newLines0) {
+            currentLines = newLines0
+        } else {
+            currentLines = newLines1
+        }
+        // fmt.Println("0", newLines0)
+        // fmt.Println("1", newLines1)
+        newLines0 = newLines0[:0]
+        newLines1 = newLines1[:0]
+        if len(currentLines) == 1 {
+            scrubber, _ = strconv.ParseInt(currentLines[0], 2, 64)
+            break
+        }
+    }
+
+    return int(oxygen * scrubber)
 }
