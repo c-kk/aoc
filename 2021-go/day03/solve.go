@@ -26,7 +26,6 @@ func Answer1(puzzleInput string) int {
             }
         }
     }
-    // fmt.Println(sums)
     gamma := 0
     epsilon := 0
 
@@ -35,10 +34,8 @@ func Answer1(puzzleInput string) int {
 
         if sum > len(lines)/2 {
             gamma += int(math.Exp2(float64(position)))
-            // fmt.Println("gamma", gamma)
         } else {
             epsilon += int(math.Exp2(float64(position)))
-            // fmt.Println("epsilon", epsilon)
         }
     }
     
@@ -72,8 +69,6 @@ func Answer2(puzzleInput string) int {
         } else {
             currentLines = newLines0
         }
-        // fmt.Println("0", newLines0)
-        // fmt.Println("1", newLines1)
         newLines0 = newLines0[:0]
         newLines1 = newLines1[:0]
         if len(currentLines) == 1 {
@@ -102,8 +97,6 @@ func Answer2(puzzleInput string) int {
         } else {
             currentLines = newLines1
         }
-        // fmt.Println("0", newLines0)
-        // fmt.Println("1", newLines1)
         newLines0 = newLines0[:0]
         newLines1 = newLines1[:0]
         if len(currentLines) == 1 {
