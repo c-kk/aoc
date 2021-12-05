@@ -1,6 +1,3 @@
-import itertools
-import time
-
 lines = open("data.txt").read().split('\n')
 numbers = [int(number) for number in lines]
 

@@ -1,44 +1,39 @@
-lines = [[a, int(b)] for a,b in [l.split() for l in open("data.txt").read().split('\n')]]   
+lines = open("data.txt").read().split('\n')
+steps = [step.split(' ') for step in lines]
 
-x = sum([a for d,a in lines if d == 'forward'])
-z = sum([a if d == 'down' else -a if d == 'up' else 0 for d,a in lines])
+x = 0
+z = 0
 
-print(x*z)
+for [direction, amount] in steps:
+    if direction == 'forward': x += int(amount)
+    if direction == 'up': z -= int(amount)
+    if direction == 'down': z += int(amount)
 
-# steps = [step.split(' ') for step in lines]
+answer = x * z
+print(answer)
 
-# x = 0
-# z = 0
+x = 0
+z = 0
+aim = 0
 
-# for [direction, amount] in steps:
-#     if direction == 'forward': x += int(amount)
-#     if direction == 'up': z -= int(amount)
-#     if direction == 'down': z += int(amount)
+for step in steps:
+    direction = step[0]
+    amount = int(step[1])
 
-# print(x * z)
+    if direction == 'up': aim -= amount
+    if direction == 'down': aim += amount
 
-# x = 0
-# z = 0
-# aim = 0
+    if direction == 'forward': 
+        x += amount
+        z += aim * amount
 
-# for step in steps:
-#     direction = step[0]
-#     amount = step[1]
+answer = x * z
+print(answer)
 
-#     if direction == 'up': aim -= amount
-#     if direction == 'down': aim += amount
+# Short alternative for the first question
+# lines = [[a, int(b)] for a,b in [l.split() for l in open("data.txt").read().split('\n')]]   
 
-#     if direction == 'forward': 
-#         x += amount
-#         z += aim * amount
+# x = sum([a for d,a in lines if d == 'forward'])
+# z = sum([a if d == 'down' else -a if d == 'up' else 0 for d,a in lines])
 
-# answer = x * z
-# print(answer)
-
-print (1451208)
-
-print(sum([a for d,a in [[a, int(b)] for a,b in [l.split() for l in open("data.txt").read().split('\n')]] if d == 'forward']) * sum([a if d == 'down' else -a if d == 'up' else 0 for d,a in [[a, int(b)] for a,b in [l.split() for l in open("data.txt").read().split('\n')]]]))
-
-
-ages = [11, 42, 42]
-print(sum([age+1*2 for age in ages]))
+# print(x*z)
