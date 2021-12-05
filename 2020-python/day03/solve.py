@@ -1,4 +1,4 @@
-with open('2020/day3/data.txt') as f:
+with open('data.txt') as f:
     lines = f.read().split()
 
 ypos = 0
