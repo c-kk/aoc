@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '../..')
+sys.path.insert(0, '..')
 from lib import luca, dictxy, tprint, timing
 
 def area_string(area):

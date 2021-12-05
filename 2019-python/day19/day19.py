@@ -1,4 +1,4 @@
-import sys; sys.path.insert(0, '../..')
+import sys; sys.path.insert(0, '..')
 from lib import luca, dictxy, tprint, timing
 
 # Part 1
