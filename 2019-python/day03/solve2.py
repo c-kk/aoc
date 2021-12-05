@@ -53,7 +53,7 @@ class Path:
     def find_overlapping_points(self, path):
         return list(set(self.points) & set(path.points))
 
-lines = open("2019/day3/data.txt").read().split('\n')
+lines = open("data.txt").read().split('\n')
 paths = [Path.from_string(line) for line in lines]
 path1 = paths[0]
 path2 = paths[1]

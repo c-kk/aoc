@@ -56,7 +56,7 @@ class Path:
     def find_overlapping_points(self, path):
         return list(set(self.points) & set(path.points))
 
-lines = open("2019/day3/data.txt").read().split('\n')
+lines = open("data.txt").read().split('\n')
 paths = [Path.from_string(line) for line in lines]
 overlapping_points = paths[0].find_overlapping_points(paths[1])
 overlapping_points.remove(Point(0, 0))

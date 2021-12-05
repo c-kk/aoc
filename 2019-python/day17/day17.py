@@ -33,7 +33,6 @@ def nbs(pos):
 # A crossing is when all neighbors are scaffolds. Multiply x and y of the crossing and sum the answers
 summed_crossings = sum([pos[0] * pos[1] for pos in sca_set if all(nb in sca_set for nb in nbs(pos))])
 print("Part 1:", summed_crossings)
-exit()
 
 # Part 2
 # Create new scanner
