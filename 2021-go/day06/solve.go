@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	//    "strconv"
-	// "regexp"
 )
 
 func main() {
