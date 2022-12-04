@@ -3,9 +3,8 @@ package main
 import (
 	"testing"
 )
-    
-const puzzleInput string = 
-`be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+
+const puzzleInput string = `be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
 edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
 fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
 fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
@@ -15,19 +14,19 @@ dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbc
 bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
 egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
 gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce`
-const correctAnswer1 int = 26 
+const correctAnswer1 int = 26
 const correctAnswer2 int = 61229
 
 func TestAnswer1(t *testing.T) {
-    answer1 := Answer1(puzzleInput)
-    if answer1 != correctAnswer1 {
-        t.Fatalf("Answer 1: %v is not equal to correct answer %v", answer1, correctAnswer1)
-    }
+	answer1 := Answer1(puzzleInput)
+	if answer1 != correctAnswer1 {
+		t.Fatalf("Answer 1: %v is not equal to correct answer %v", answer1, correctAnswer1)
+	}
 }
 
 func TestAnswer2(t *testing.T) {
-    answer2 := Answer2(puzzleInput)
-    if answer2 != correctAnswer2 {
-        t.Fatalf("Answer 2: %v is not equal to correct answer %v", answer2, correctAnswer2)
-    }
+	answer2 := Answer2(puzzleInput)
+	if answer2 != correctAnswer2 {
+		t.Fatalf("Answer 2: %v is not equal to correct answer %v", answer2, correctAnswer2)
+	}
 }
