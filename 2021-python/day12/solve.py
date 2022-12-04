@@ -1,35 +1,52 @@
 # Solution from Reddit user 4HbQ
 # Source: https://old.reddit.com/r/adventofcode/comments/rehj2r/2021_day_12_solutions/ho7x83o/
 
-# Count explained
-# A call to search(..., n) returns the number of valid paths from cave n to cave 'end'. 
-# So if we want to know how many paths there are from the current cave to 'end',
-# we simply add the counts of the adjacent caves.It's identical to this:
-#
-# count = 0
-# for n in neighbours[cave]:
-#     count += search(..., n)
-# return count
-
-from collections import defaultdict
+# Rewrite of the original version (see solve-original.py) 
+# to only use functions that also exists in Golang.
+# To goal is to use the same logic in the Go version of the solution.
 
 lines = open("data.txt").read().split('\n')
-neighbours = defaultdict(list)
+neighbours = {}
 
 for line in lines:
     a, b = line.strip().split('-')
+
+    if a not in neighbours:
+        neighbours[a] = []
+
+    if b not in neighbours:
+        neighbours[b] = []
+
     neighbours[a] += [b]
     neighbours[b] += [a]
 
-def count(part, seen=[], cave='start'):
-    if cave == 'end': return 1
+def count(cave, seen, allowDoubleVisit):
+    if cave == 'end': 
+        return 1
+
     if cave in seen:
-        if cave == 'start': return 0
-        if cave.islower():
-            if part == 1: return 0
-            else: part = 1
+        if cave == 'start': 
+            return 0
+        
+        if ord(cave[0]) > 90:
+            if not allowDoubleVisit:
+                return 0
+            else:
+                allowDoubleVisit=False
+    
+    total = 0
+    for neighbour in neighbours[cave]:
+        seen = seen + [cave]
+        pathCount = count(neighbour, seen, allowDoubleVisit)
+        total += pathCount
+    return total
 
-    return sum(count(part, seen+[cave], n)
-                for n in neighbours[cave])
+seen=[] 
+cave='start'
+allowDoubleVisit=False
+print(count(cave, seen, allowDoubleVisit))
 
-print(count(part=1), count(part=2))
+seen=[] 
+cave='start'
+allowDoubleVisit=True
+print(count(cave, seen, allowDoubleVisit))
