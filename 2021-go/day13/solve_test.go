@@ -26,7 +26,7 @@ const puzzleInput string = `6,10
 fold along y=7
 fold along x=5`
 const correctAnswer1 int = 17
-const correctAnswer2 int = 0
+const correctAnswer2 int = 16
 
 func TestAnswer1(t *testing.T) {
 	answer1 := Answer1(puzzleInput)
