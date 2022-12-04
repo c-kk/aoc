@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-    // "strconv"
+    "strconv"
 )
 
 func main() {
@@ -15,97 +15,239 @@ func main() {
 }
 
 func Answer1(puzzleInput string) int {
-    lines := strings.Split(puzzleInput, "\n")
-    // fmt.Println(lines)
+    lines := strings.Split(puzzleInput, "\n")    
+    count := 0
 
-    // var signalPatterns []string
-    var outputValues []string
-    
     for _,line := range lines {
+        // Select the items on the right side of the |
         inputs := strings.Split(line, " | ")
-        // fmt.Println("Line", line, "Inputs", inputs[1])
-        for _,input := range strings.Split(inputs[1], " ") {
-            outputValues = append(outputValues, input)
-            // fmt.Println(input)
+        toDecode := strings.Split(inputs[1], " ")
+
+        // Count all items with a length of 2,3,4 or 7
+        for _,item := range toDecode {
+            length := len(item)
+            if length == 2 || length == 3 || length == 4 || length == 7 {
+                count += 1
+            }        
         }
     }
 
-    // 1 => 2
-    // 4 => 4
-    // 7 => 3
-    // 8 => 7
-    count1478 := 0
-    for _,outputValue := range outputValues {
-        length := len(outputValue)
-        if length == 2 || length == 4 || length == 3 || length == 7 {
-            count1478 += 1
-            // fmt.Println(count1478, outputValue)    
-        }
-        
-    }
-
-    return count1478
+    return count
 }
 
 func Answer2(puzzleInput string) int {
+    answer := 0
     lines := strings.Split(puzzleInput, "\n")
-    line := lines[0]
-    inputs := strings.Split(line, " | ")
-    hints := strings.Split(inputs[0], " ")
-    toDecode := strings.Split(inputs[1], " ")
-    fmt.Println("Hints", hints, "To decode", toDecode)
+    for _,line := range lines {
+        inputs := strings.Split(line, " | ")
+        hints := convertStringsToCharacters(strings.Split(inputs[0], " "))
+        outputValues := convertStringsToCharacters(strings.Split(inputs[1], " "))
+        // fmt.Println("Hints", hints, "Output values to decode", outputValues)
 
-    positions := make([][]string,7)
+        // Positions
+        // ┌-0-┐
+        // 1   2
+        // |-3-|
+        // 4   5
+        // └-6-┘ 
 
-    for i := range positions {
-        positions[i] = []string{"a","b","c","d","e","f","g"}
-    }
-
-    // 1 is the only number with 2 segments
-    // The characters in those segments must be in position 2 and 5
-    hintWithLength2 := filterByStringLength(hints, 2)[0]
-    fmt.Println("Length 2", hintWithLength2)
-    positions[2] = []string{}
-    positions[5] = []string{}
-    for _,rune := range hintWithLength2 {
-        char := string(rune)
+        // Fill the 7 positions with the 7 possible characters
+        positions := make([][]string,7)
         for i := range positions {
-            positions[i] = removeItemByValue(positions[i], char)
+            positions[i] = []string{"a","b","c","d","e","f","g"}
         }
-        positions[2] = append(positions[2], char)
-        positions[5] = append(positions[5], char)
+
+        // 1 is the only number with 2 positions
+        // The characters must be in position 2 and 5
+        hintWithLength2 := filterByStringLength(hints, 2)[0]
+        // fmt.Println("Length 2", hintWithLength2)
+        positions[2] = []string{}
+        positions[5] = []string{}
+        for _,char := range hintWithLength2 {
+            positions = removeItemFromAllPositions(positions, char)
+            positions[2] = append(positions[2], char)
+            positions[5] = append(positions[5], char)
+        }
+        // fmt.Println("Positions", positions)
+
+
+        // 7 is the only number with 3 positions
+        // The character that is not in the hintWithLength2 must be in position 0
+        hintWithLength3 := filterByStringLength(hints, 3)[0]
+        // fmt.Println("Length 3", hintWithLength3)
+        positions[0] = []string{}
+        for _,char := range hintWithLength3 {
+            if hasItem(positions[2], char) { continue }
+            positions = removeItemFromAllPositions(positions, char)
+            positions[0] = append(positions[0], char)
+        }
+        // fmt.Println("Positions", positions)
+
+        // 4 is the only number with 4 positions
+        // The 2 characters that are not in the hintWithLength2 must be in position 1 and 3
+        hintWithLength4 := filterByStringLength(hints, 4)[0]
+        // fmt.Println("Length 4", hintWithLength4)
+        positions[1] = []string{}
+        positions[3] = []string{}
+        for _,char := range hintWithLength4 {
+            if hasItem(positions[2], char) { continue }
+            positions = removeItemFromAllPositions(positions, char)
+            positions[1] = append(positions[1], char)
+            positions[3] = append(positions[3], char)
+        }
+        // fmt.Println("Positions", positions)
+
+        // 0, 6 and 9 are the numbers with 6 positions
+        // The 6 is the only number that doesn't have 2 positions that are in the hintWithLength2 
+        // Use this to find the number 6
+        hint6 := []string{}
+        hints0or9 := [][]string{}
+        hintsWithLength6 := filterByStringLength(hints, 6)
+        // fmt.Println("Length 6", hintsWithLength6)
+        for _,hint := range hintsWithLength6 {
+            if ! (hasItem(hint, hintWithLength2[0]) && hasItem(hint, hintWithLength2[1])) { 
+                hint6 = hint
+            } else {
+                hints0or9 = append(hints0or9, hint)
+            }
+        }
+        // fmt.Println("Hint 6", hint6)
+
+        // Number 6 has position 5 but not position 2
+        // Use this to find out which of the 2 characters are in position 2 and 5 
+        for _,char := range positions[5] {
+            if hasItem(hint6, char) {
+                positions[5] = []string{char}
+            } else {
+                positions[2] = []string{char}
+            }
+        }
+        // fmt.Println("Positions", positions)
+
+        // The 0 is the only 6 positions number that has the 2 characters from position 4
+        // Use this to find number 0 and 9
+        hint0 := []string{}
+        hint9 := []string{}
+        // fmt.Println("Hints 0 or 9", hints0or9)
+        for _,hint := range hints0or9 {
+            if hasItem(hint, positions[4][0]) && hasItem(hint, positions[4][1]) { 
+                hint0 = hint
+            } else {
+                hint9 = hint
+            }
+        }
+        // fmt.Println("Hint 0", hint0, "Hint 9", hint9)
+
+        // Number 9 has position 6 but not position 4
+        // Use this to find out which of the 2 characters are in position 4 and 6 
+        for _,char := range positions[4] {
+            if hasItem(hint9, char) {
+                positions[6] = []string{char}
+            } else {
+                positions[4] = []string{char}
+            }
+        }
+        // fmt.Println("Positions", positions)
+
+        // Number 0 has position 1 but not position 3
+        // Use this to find out which of the 2 characters are in position 1 and 3 
+        for _,char := range positions[1] {
+            if hasItem(hint0, char) {
+                positions[1] = []string{char}
+            } else {
+                positions[3] = []string{char}
+            }
+        }
+        // fmt.Println("Positions", positions)
+        // Done finding the right character for all positions! 
+
+        // List the positions per number
+        posNumbers := [][]int {
+            {0,1,2,4,5,6},
+            {2,5},
+            {0,2,3,4,6},
+            {0,2,3,5,6},
+            {1,2,3,5},
+            {0,1,3,5,6},
+            {0,1,3,4,5,6},
+            {0,2,5},
+            {0,1,2,3,4,5,6},
+            {0,1,2,3,5,6},
+        }
+
+        // Match the characters to the numbers
+        posChars := [][]string{}
+        for _,numbers := range posNumbers {
+            chars := []string{}
+            for _,number := range numbers {
+                chars = append(chars, positions[number][0])
+            }
+            posChars = append(posChars, chars)
+        }
+
+        // Convert the output values to single digits by matching the characters
+        var outputInts []int
+
+        for _,outputValue := range outputValues {   
+            for key,posChar := range posChars {
+                if len(posChar) != len(outputValue) {
+                    continue
+                }
+
+                match := true
+                
+                for _,char := range posChar {
+                    if ! hasItem(outputValue, char) {
+                        match = false
+                    }
+                }
+
+                if match {
+                   outputInts = append(outputInts, key)
+                }
+            }
+        }
+
+        // Merge the digits to a single number
+        var str string
+        for i := range outputInts {
+            str += strconv.Itoa(outputInts[i])
+        }
+        num, _ := strconv.Atoi(str)
+
+        answer += num
+        fmt.Println(outputValues, num)
     }
-    fmt.Println("Positions", positions)
-
-    // 7 is the only number with 3 segments
-    // The character that is not in the hintWithLength2 must be in position 0
-    hintWithLength3 := filterByStringLength(hints, 3)[0]
-    fmt.Println("Length 3", hintWithLength3)
-    positions[0] = []string{}
-    for _,rune := range hintWithLength3 {
-        char := string(rune)
-        if hasItem(positions[2], char) {
-            continue
-        }
-        for i := range positions {
-            positions[i] = removeItemByValue(positions[i], char)
-        }
-        positions[0] = append(positions[0], char)
-    }
-    fmt.Println("Positions", positions)
-
-
-    return 0
+    return answer
 }
 
-func filterByStringLength(strings []string, length int) []string {
-    filtered := []string{}
+func convertStringsToCharacters(strings []string) [][]string {
+    var charsSlice [][]string
+    for _,str := range strings {
+        var chars []string
+        for _,rune := range str {
+            chars = append(chars, string(rune))
+        }
+        charsSlice = append(charsSlice, chars)
+    }
+    return charsSlice
+}
+
+func filterByStringLength(strings [][]string, length int) [][]string {
+    filtered := [][]string{}
     for i := range strings {
         if len(strings[i]) == length {
             filtered = append(filtered, strings[i])
         }
     }
     return filtered
+}
+
+func removeItemFromAllPositions(positions [][]string, item string) [][]string {
+    for i := range positions {
+        positions[i] = removeItemByValue(positions[i], item)
+    }
+    return positions
 }
 
 func removeItemByValue(strings []string, item string) []string {
@@ -126,41 +268,3 @@ func hasItem(strings []string, item string) bool {
     }
     return false
 }
-
-// positions := []string {}
-
-// numbers := [][]int {
-//     {0,1,2,4,5,6},
-//     {2,5},
-//     {0,2,3,4,6},
-//     {0,2,3,5,6},
-//     {1,2,3,5},
-//     {0,1,3,5,6},
-//     {0,1,3,4,5,6},
-//     {0,2,5},
-//     {0,1,2,3,4,5,6},
-//     {0,1,2,3,5,6},
-// }
-// fmt.Println(numbers)
-
-
-
-// values := strings.Split(lineWithoutDelimiter, " ")
-
-// for _,value := range values {
-//     fmt.Println(value)
-// }
-
-// fmt.Println(lines)
-// numbers2 := [][]string {
-//     {"a","b","c","e","f","g"},
-//     {"c","f"},
-//     {"a","c","d","e","g"},
-//     {"a","c","d","f","g"},
-//     {"b","c","d","f"},
-//     {"a","b","d","f","g"},
-//     {"a","b","d","f","g", "e"},
-//     {"a","c","f"},
-//     {"a","b","c","d","e","f","g"},
-//     {"a","b","c","d","f","g"},
-// }
