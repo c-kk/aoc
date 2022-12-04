@@ -49,14 +49,14 @@ const correctAnswer2 int = 36
 // const correctAnswer2 int = 3509
 
 func TestAnswer1(t *testing.T) {
-	answer1 := Answer1(puzzleInput)
+	answer1 := Answer(puzzleInput, -1)
 	if answer1 != correctAnswer1 {
 		t.Fatalf("Answer 1: %v is not equal to correct answer %v", answer1, correctAnswer1)
 	}
 }
 
 func TestAnswer2(t *testing.T) {
-	answer2 := Answer2(puzzleInput)
+	answer2 := Answer(puzzleInput, 1)
 	if answer2 != correctAnswer2 {
 		t.Fatalf("Answer 2: %v is not equal to correct answer %v", answer2, correctAnswer2)
 	}
