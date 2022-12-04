@@ -147,6 +147,13 @@ func forLoop() {
 	}
 }
 
+// Time measurement
+func measureTime() {
+	start := time.Now()
+	fmt.Println("Do things...")
+	fmt.Println("Time elapsed", time.Since(start))
+}
+
 // gopls Sublime text settings
 // Source: https://agniva.me/gopls/2021/01/02/setting-up-gopls-sublime.html
 // {
