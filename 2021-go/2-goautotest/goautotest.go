@@ -49,7 +49,7 @@ func main() {
 					continue
 				}
 				oldTime = newTime
-				fmt.Println(event.Name, "changed")
+				fmt.Println(newTime.Format("15:04:05"), event.Name, "changed")
 				runGoTest()
 
 			case keyEvent := <-keysEvents:
