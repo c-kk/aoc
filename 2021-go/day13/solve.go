@@ -44,14 +44,50 @@ func Answer2(puzzleInput string) int {
 	return count
 }
 
-func countVisible(paper [][]int) int {
-	count := 0
-	for _, row := range paper {
-		for _, val := range row {
-			count += val
+func getSize(lines []string, axis string) int {
+	for _, line := range lines {
+		splitted := strings.Split(line, "=")
+		if strings.HasPrefix(splitted[0], "fold along "+axis) {
+			max, _ := strconv.Atoi(splitted[1])
+			size := 1 + max*2
+			return size
 		}
 	}
-	return count
+	return 0
+}
+
+func makeEmptyPaper(ySize int, xSize int) [][]int {
+	paper := make([][]int, ySize)
+	for i := 0; i < ySize; i++ {
+		paper[i] = make([]int, xSize)
+	}
+	return paper
+}
+
+func fillPaper(paper [][]int, lines []string) [][]int {
+	for _, line := range lines {
+		if line == "" || strings.HasPrefix(line, "fold") {
+			continue
+		}
+		splitted := strings.Split(line, ",")
+		x, _ := strconv.Atoi(splitted[0])
+		y, _ := strconv.Atoi(splitted[1])
+		paper[y][x] = 1
+	}
+	return paper
+}
+
+func getFolds(lines []string) []string {
+	folds := []string{}
+	for _, line := range lines {
+		if strings.Contains(line, "y") {
+			folds = append(folds, "y")
+		}
+		if strings.Contains(line, "x") {
+			folds = append(folds, "x")
+		}
+	}
+	return folds
 }
 
 func doFold(paper [][]int, fold string) [][]int {
@@ -88,38 +124,14 @@ func doFold(paper [][]int, fold string) [][]int {
 	return newPaper
 }
 
-func getFolds(lines []string) []string {
-	folds := []string{}
-	for _, line := range lines {
-		if strings.Contains(line, "y") {
-			folds = append(folds, "y")
-		}
-		if strings.Contains(line, "x") {
-			folds = append(folds, "x")
+func countVisible(paper [][]int) int {
+	count := 0
+	for _, row := range paper {
+		for _, val := range row {
+			count += val
 		}
 	}
-	return folds
-}
-
-func fillPaper(paper [][]int, lines []string) [][]int {
-	for _, line := range lines {
-		if line == "" || strings.HasPrefix(line, "fold") {
-			continue
-		}
-		splitted := strings.Split(line, ",")
-		x, _ := strconv.Atoi(splitted[0])
-		y, _ := strconv.Atoi(splitted[1])
-		paper[y][x] = 1
-	}
-	return paper
-}
-
-func makeEmptyPaper(ySize int, xSize int) [][]int {
-	paper := make([][]int, ySize)
-	for i := 0; i < ySize; i++ {
-		paper[i] = make([]int, xSize)
-	}
-	return paper
+	return count
 }
 
 func printPaper(paper [][]int) {
@@ -133,16 +145,4 @@ func printPaper(paper [][]int) {
 		}
 		fmt.Printf(" %v\n", y)
 	}
-}
-
-func getSize(lines []string, axis string) int {
-	for _, line := range lines {
-		splitted := strings.Split(line, "=")
-		if strings.HasPrefix(splitted[0], "fold along "+axis) {
-			max, _ := strconv.Atoi(splitted[1])
-			size := 1 + max*2
-			return size
-		}
-	}
-	return 0
 }
