@@ -56,6 +56,19 @@ func Answer2(puzzleInput string) int {
 	return stepThatAllOctopusesFlash
 }
 
+func convertStringSliceToIntSlices(stringSlice []string) [][]int {
+	var intSlices [][]int
+	for _, str := range stringSlice {
+		var intSlice []int
+		for _, rune := range str {
+			int, _ := strconv.Atoi(string(rune))
+			intSlice = append(intSlice, int)
+		}
+		intSlices = append(intSlices, intSlice)
+	}
+	return intSlices
+}
+
 func runStep(field [][]int) ([][]int, int) {
 	stepFlashes := 0
 	field = increaseEnergyByOne(field)
@@ -64,13 +77,10 @@ func runStep(field [][]int) ([][]int, int) {
 	return field, stepFlashes
 }
 
-func resetFlashedOctopuses(field [][]int) [][]int {
+func increaseEnergyByOne(field [][]int) [][]int {
 	for y, row := range field {
 		for x := range row {
-			val := field[x][y]
-			if val == FLASHED {
-				field[x][y] = 0
-			}
+			field[x][y] += 1
 		}
 	}
 	return field
@@ -118,10 +128,13 @@ func flashOctopuses(field [][]int) ([][]int, int) {
 	return field, count
 }
 
-func increaseEnergyByOne(field [][]int) [][]int {
+func resetFlashedOctopuses(field [][]int) [][]int {
 	for y, row := range field {
 		for x := range row {
-			field[x][y] += 1
+			val := field[x][y]
+			if val == FLASHED {
+				field[x][y] = 0
+			}
 		}
 	}
 	return field
@@ -138,17 +151,4 @@ func printField(field [][]int) {
 		}
 		fmt.Println("")
 	}
-}
-
-func convertStringSliceToIntSlices(stringSlice []string) [][]int {
-	var intSlices [][]int
-	for _, str := range stringSlice {
-		var intSlice []int
-		for _, rune := range str {
-			int, _ := strconv.Atoi(string(rune))
-			intSlice = append(intSlice, int)
-		}
-		intSlices = append(intSlices, intSlice)
-	}
-	return intSlices
 }
