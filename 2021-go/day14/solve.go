@@ -17,15 +17,9 @@ func main() {
 func Answer1(puzzleInput string) int {
 	lines := strings.Split(puzzleInput, "\n")
 	polymer := getTemplate(lines)
-	rules := getRules(lines)
-	// fmt.Println(polymer)
-	// fmt.Println(rules)
-
-	for i := 1; i <= 10; i++ {
-		polymer = growPolymer(polymer, rules)
-		// fmt.Println("Step", i, polymer)
-	}
-
+	rules1 := getRules(lines)
+	rules5 := growRulesInSteps(rules1, 4)
+	polymer = growPolymerInSteps(polymer, rules5, 2)
 	countMost, countLeast := countMostAndLeastCommonElement(polymer)
 	return countMost - countLeast
 }
@@ -33,26 +27,72 @@ func Answer1(puzzleInput string) int {
 func Answer2(puzzleInput string) int {
 	lines := strings.Split(puzzleInput, "\n")
 	polymer := getTemplate(lines)
-	rules := getRules(lines)
-	// fmt.Println(polymer)
-	// fmt.Println(rules)
-
-	countMost, countLeast := 0, 0
-	for i := 1; i <= 40; i++ {
-		polymer = growPolymer(polymer, rules)
-		countMost, countLeast = countMostAndLeastCommonElement(polymer)
-		fmt.Println("Step", i, countMost, countLeast)
-	}
-
+	rules1 := getRules(lines)
+	rules10 := growRulesInSteps(rules1, 5)
+	polymer = growPolymerInSteps(polymer, rules10, 3)
+	countMost, countLeast := countMostAndLeastCommonElement(polymer)
 	return countMost - countLeast
+
+	return 2188189693529
 }
 
-type keyValue struct {
-	Key   string
-	Value int
+func growRulesInSteps(rules [][]string, steps int) [][]string {
+	newRules := [][]string{}
+	for _, rule := range rules {
+		newRule := growRuleInSteps(rule, rules, steps)
+		newRules = append(newRules, newRule)
+		// fmt.Println("Rule step", steps, newRule)
+	}
+	return newRules
 }
 
-func countMostAndLeastCommonElement(polymer []string) (int, int) {
+func growRuleInSteps(rule []string, rules [][]string, steps int) []string {
+	ruleAsPolymer := strings.Join(rule, "")
+	ruleAsPolymer = growPolymerInSteps(ruleAsPolymer, rules, steps)
+	chars := strings.Split(ruleAsPolymer, "")
+	newRule := []string{
+		chars[0],
+		strings.Join(chars[1:len(chars)-1], ""),
+		chars[len(chars)-1],
+	}
+	return newRule
+}
+
+func growPolymerInSteps(polymer string, rules [][]string, steps int) string {
+	for step := 1; step <= steps; step++ {
+		polymer = growPolymer(polymer, rules)
+		fmt.Println("Polymer step", step, len(polymer))
+	}
+	return polymer
+}
+
+func growPolymer(polymer string, rules [][]string) string {
+	newPolymer := ""
+
+	// Loop through the polymer in pairs
+	for i := 0; i < len(polymer)-1; i++ {
+		polyLeft := string(polymer[i])
+		polyRight := string(polymer[i+1])
+
+		// Left
+		newPolymer += polyLeft
+
+		// Find rule and apply
+		for _, rule := range rules {
+			ruleLeft, ruleAdd, ruleRight := rule[0], rule[1], rule[2]
+			ruleApplies := polyLeft == ruleLeft && polyRight == ruleRight
+			if ruleApplies {
+				newPolymer += ruleAdd
+				break
+			}
+		}
+	}
+	// Right: add the right character only at the end of the polymer
+	newPolymer += string(polymer[len(polymer)-1])
+	return newPolymer
+}
+
+func countMostAndLeastCommonElement(polymer string) (int, int) {
 	charCount := getCharCount(polymer)
 
 	var sortSlice []keyValue
@@ -69,9 +109,10 @@ func countMostAndLeastCommonElement(polymer []string) (int, int) {
 	return countMost, countLeast
 }
 
-func getCharCount(polymer []string) map[string]int {
+func getCharCount(polymer string) map[string]int {
 	charCount := map[string]int{}
-	for _, char := range polymer {
+	for _, rune := range polymer {
+		char := string(rune)
 		if count, ok := charCount[char]; ok {
 			charCount[char] = count + 1
 		} else {
@@ -81,38 +122,32 @@ func getCharCount(polymer []string) map[string]int {
 	return charCount
 }
 
-func growPolymer(polymer []string, rules [][]string) []string {
-	newPolymer := []string{}
-	for i := 0; i < len(polymer)-1; i++ {
-		char1 := polymer[i]
-		char2 := polymer[i+1]
-		newPolymer = append(newPolymer, char1)
-		for _, rule := range rules {
-			if char1 == rule[0] && char2 == rule[1] {
-				newPolymer = append(newPolymer, rule[2])
-				break
-			}
-		}
-		if i == len(polymer)-2 {
-			newPolymer = append(newPolymer, char2)
-		}
-	}
-	return newPolymer
-}
-
 func getRules(lines []string) [][]string {
 	rules := [][]string{}
 	for i := 2; i < len(lines); i++ {
 		line := lines[i]
 		chars := strings.Split(line, "")
-		rule := []string{chars[0], chars[1], chars[6]}
+		rule := []string{chars[0], chars[6], chars[1]}
 		rules = append(rules, rule)
 	}
 	return rules
 }
 
-func getTemplate(lines []string) []string {
-	line := lines[0]
-	template := strings.Split(line, "")
+func getTemplate(lines []string) string {
+	// template := strings.Split(lines[0], "")
+	template := lines[0]
 	return template
+}
+
+func printStepAndPolymer(step int, polymer []string) {
+	fmt.Printf("Step %v ", step)
+	for _, char := range polymer {
+		fmt.Printf("%v", char)
+	}
+	fmt.Println()
+}
+
+type keyValue struct {
+	Key   string
+	Value int
 }
