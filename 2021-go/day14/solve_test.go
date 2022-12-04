@@ -4,6 +4,15 @@ import (
 	"testing"
 )
 
+// const puzzleInput string = `ABAB
+
+// AB -> C
+// CB -> A`
+// const correctAnswer1 int = 10
+// const correctAnswer2 int = 0
+
+// const correctAnswer2 int = 20
+
 const puzzleInput string = `NNCB
 
 CH -> B
@@ -22,8 +31,11 @@ BB -> N
 BC -> B
 CC -> N
 CN -> C`
+
 const correctAnswer1 int = 1588
-const correctAnswer2 int = 2188189693529
+const correctAnswer2 int = 0
+
+// const correctAnswer2 int = 2188189693529
 
 func TestAnswer1(t *testing.T) {
 	answer1 := Answer1(puzzleInput)
