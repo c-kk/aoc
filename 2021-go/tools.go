@@ -6,12 +6,47 @@ import (
 	"time"
 )
 
+// Console commands to start working on a new Advent of Code day
+// open https://adventofcode.com/2021/day/10
+// cd ~/code/aoc/2021-go
+// cp -R day00 day10 && cd day10 && edit go.mod && edit solve_test.go && edit data.txt && edit solve.go
+// goautotest
+
+// Print a slice with one item per line
+// Instruction: adjust the type of slice to match the actual type
+func printSlice(slice []int) {
+	for _, item := range slice {
+		fmt.Println(item)
+	}
+}
+
+// Print a slice of slices with one item per line
+// Instruction: adjust the type of items to match the actual type
+func printSliceOfSlices(slices [][]int) {
+	for _, slice := range slices {
+		for _, item := range slice {
+			fmt.Println(item)
+		}
+	}
+}
+
+// Convert a string slice to int slice
+// Example: ["219", "398", "789"] to [219 398 789]
+func convertStringSliceToIntSlice(stringSlice []string) []int {
+	var intSlice []int
+	for _, str := range stringSlice {
+		int, _ := strconv.Atoi(str)
+		intSlice = append(intSlice, int)
+	}
+	return intSlice
+}
+
 // Convert a string slice to int slices
 // Example: ["2199943210", "3987894921"] to [[2 1 9 9 9 4 3 2 1 0][3 9 8 7 8 9 4 9 2 1]]
 // Used in: 2021 day 9 for an underwater depth map
-func convertStringSliceToIntSlices(strings []string) [][]int {
+func convertStringSliceToIntSlices(stringSlice []string) [][]int {
 	var intSlices [][]int
-	for _, str := range strings {
+	for _, str := range stringSlice {
 		var intSlice []int
 		for _, rune := range str {
 			int, _ := strconv.Atoi(string(rune))
@@ -63,4 +98,29 @@ func printDateAndTime() {
 	fmt.Println("Short Hour Minute Second: ", currentTime.Format("2006-01-02 3:4:5"))
 	fmt.Println("Short Hour Minute Second: ", currentTime.Format("2006-01-02 3:4:5 PM"))
 	fmt.Println("Short Hour Minute Second: ", currentTime.Format("2006-01-02 3:4:5 pm"))
+}
+
+// Get minimum value of two ints
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+// Get maximum value of two ints
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+// Get absolut value of an int
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	} else {
+		return x
+	}
 }
