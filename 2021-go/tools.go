@@ -7,9 +7,9 @@ import (
 )
 
 // Console commands to start working on a new Advent of Code day
-// open https://adventofcode.com/2021/day/10
+// open https://adventofcode.com/2021/day/11
 // cd ~/code/aoc/2021-go
-// cp -R day00 day10 && cd day10 && edit go.mod && edit solve_test.go && edit data.txt && edit solve.go
+// cp -R day00 day11 && cd day11 && edit go.mod && edit solve_test.go && edit data.txt && edit solve.go
 // goautotest
 
 // Print a slice with one item per line
@@ -55,6 +55,22 @@ func convertStringSliceToIntSlices(stringSlice []string) [][]int {
 		intSlices = append(intSlices, intSlice)
 	}
 	return intSlices
+}
+
+// Convert a string slice to string slices
+// Example: ["abc", "def"] to [["a" "b" "c"]["d" "e" "f"]]
+// Used in: 2021 day 10 for converting lines of characters
+func convertStringSliceToStringSlices(stringSliceInput []string) [][]string {
+	var stringSlices [][]string
+	for _, str := range stringSliceInput {
+		var stringSliceOutput []string
+		for _, rune := range str {
+			char := string(rune)
+			stringSliceOutput = append(stringSliceOutput, char)
+		}
+		stringSlices = append(stringSlices, stringSliceOutput)
+	}
+	return stringSlices
 }
 
 // Create 3-dimensional slice (or more than 3)
@@ -124,3 +140,38 @@ func abs(x int) int {
 		return x
 	}
 }
+
+// Basic for loop
+func forLoop() {
+	for i := 1; i < 5; i++ {
+	}
+}
+
+// gopls Sublime text settings
+// Source: https://agniva.me/gopls/2021/01/02/setting-up-gopls-sublime.html
+// {
+//  "clients":
+//  {
+//      "gopls":
+//      {
+//          "command": ["~/go/bin/gopls"],
+//          "enabled": true,
+//          "env": {
+//              "PATH": "~/go/bin:/usr/local/go/bin"
+//          },
+//          "scopes":["source.go"],
+//          "syntaxes": [
+//              "Packages/Go/Go.sublime-syntax",
+//          ],
+//          "settings": {
+//              "gopls.usePlaceholders": true,
+//              "gopls.completeUnimported": true,
+//          },
+//          "languageId": "go"
+//      }
+//  },
+//  "only_show_lsp_completions": true,
+//  "show_references_in_quick_panel": true,
+//  "log_debug": true,
+//  "log_stderr": true
+// }

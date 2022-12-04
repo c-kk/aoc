@@ -24,7 +24,8 @@ func main() {
 
 	// Watcher events
 	watcher, _ := fsnotify.NewWatcher()
-	watcher.Add("./")
+	defer watcher.Close()
+	done := make(chan bool)
 	watcherEvents := watcher.Events
 
 	// Keyboard events
@@ -34,29 +35,33 @@ func main() {
 	oldTime := time.Now()
 
 	// Watch loop
-	for {
-		select {
-		case event := <-watcherEvents:
-			// Measure the time difference between two testruns
-			// Only allow a new testrun every couple of seconds
-			newTime := time.Now()
-			diff := newTime.Sub(oldTime)
-			if diff < 3*time.Second {
-				continue
-			}
-			oldTime = newTime
-			fmt.Println(newTime.Format("15:04:05"), event.Name, "changed")
-			runGoTest()
+	go func() {
+		for {
+			select {
+			case event := <-watcherEvents:
+				// Measure the time difference between two testruns
+				// Only allow a new testrun every couple of seconds
+				newTime := time.Now()
+				diff := newTime.Sub(oldTime)
+				if diff < 2*time.Second {
+					continue
+				}
+				oldTime = newTime
+				fmt.Println(newTime.Format("15:04:05"), event.Name, "changed")
+				runGoTest()
 
-		case keyEvent := <-keyboardEvents:
-			// fmt.Printf("You pressed: rune %q, key %X\r\n", keyEvent.Rune, keyEvent.Key)
-			if keyEvent.Key == keyboard.KeyEsc || keyEvent.Key == keyboard.KeyCtrlZ {
-				watcher.Close()
-				keyboard.Close()
-				os.Exit(1)
+			case keyEvent := <-keyboardEvents:
+				// fmt.Printf("You pressed: rune %q, key %X\r\n", keyEvent.Rune, keyEvent.Key)
+				if keyEvent.Key == keyboard.KeyEsc || keyEvent.Key == keyboard.KeyCtrlZ {
+					keyboard.Close()
+					os.Exit(1)
+				}
 			}
 		}
-	}
+	}()
+
+	watcher.Add("./")
+	<-done
 }
 
 func runGoTest() {
