@@ -86,8 +86,7 @@ func isAllowed(targetId int, path []int, maxDoubleVisits int) bool {
 	countDoubleVisits := 0
 	multiple := targetId
 	for _, caveId := range path {
-		exists := multiple%caveId == 0
-		if exists {
+		if multiple%caveId == 0 {
 			countDoubleVisits += 1
 			if countDoubleVisits > maxDoubleVisits {
 				return false
