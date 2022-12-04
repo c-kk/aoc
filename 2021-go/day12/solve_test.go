@@ -4,6 +4,29 @@ import (
 	"testing"
 )
 
+const puzzleInput string = `start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end`
+const correctAnswer1 int = 10
+const correctAnswer2 int = 36
+
+// const puzzleInput string = `dc-end
+// HN-start
+// start-kj
+// dc-start
+// dc-HN
+// LN-dc
+// HN-end
+// kj-sa
+// kj-HN
+// kj-dc`
+// const correctAnswer1 int = 19
+// const correctAnswer2 int = 103
+
 // const puzzleInput string = `fs-end
 // he-DX
 // fs-he
@@ -23,16 +46,7 @@ import (
 // pj-fs
 // start-RW`
 // const correctAnswer1 int = 226
-
-const puzzleInput string = `start-A
-start-b
-A-c
-A-b
-b-d
-A-end
-b-end`
-const correctAnswer1 int = 10
-const correctAnswer2 int = 0
+// const correctAnswer2 int = 3509
 
 func TestAnswer1(t *testing.T) {
 	answer1 := Answer1(puzzleInput)
