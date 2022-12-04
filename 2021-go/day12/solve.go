@@ -17,16 +17,16 @@ func main() {
 }
 
 func Answer1(puzzleInput string) int {
-	allowOneDoubleVisit := false
-	return countPossiblePaths(puzzleInput, allowOneDoubleVisit)
+	maxDoubleVisits := 0
+	return countPossiblePaths(puzzleInput, maxDoubleVisits)
 }
 
 func Answer2(puzzleInput string) int {
-	allowOneDoubleVisit := true
-	return countPossiblePaths(puzzleInput, allowOneDoubleVisit)
+	maxDoubleVisits := 1
+	return countPossiblePaths(puzzleInput, maxDoubleVisits)
 }
 
-func countPossiblePaths(puzzleInput string, allowOneDoubleVisit bool) int {
+func countPossiblePaths(puzzleInput string, maxDoubleVisits int) int {
 	lines := strings.Split(puzzleInput, "\n")
 	caves := convertLinesToCaves(lines)
 	activePaths := append([][]int{}, []int{START_CAVE_ID})
@@ -36,17 +36,27 @@ func countPossiblePaths(puzzleInput string, allowOneDoubleVisit bool) int {
 		newPaths := [][]int{}
 
 		for _, activePath := range activePaths {
-			caveId := activePath[len(activePath)-1]
+			lenActivePath := len(activePath)
+
+			caveId := activePath[lenActivePath-1]
 			if caveId == END_CAVE_ID {
 				countFinishedPaths += 1
 				continue
 			}
 
-			targets := caves[caveId]
-			targets = filterTargets(targets, activePath, allowOneDoubleVisit)
+			// Start cave, end cave and big caves don't need to be stored in the path
+			if caveId < 0 {
+				activePath = activePath[:lenActivePath-1]
+			}
 
-			if len(targets) > 0 {
-				for _, targetId := range targets {
+			targets := caves[caveId]
+			targets = filterTargets(targets, activePath, maxDoubleVisits)
+
+			for key, targetId := range targets {
+				if key == len(targets)-1 {
+					newPath := append(activePath, targetId)
+					newPaths = append(newPaths, newPath)
+				} else {
 					newPath := append([]int{}, activePath...)
 					newPath = append(newPath, targetId)
 					newPaths = append(newPaths, newPath)
@@ -60,10 +70,10 @@ func countPossiblePaths(puzzleInput string, allowOneDoubleVisit bool) int {
 }
 
 // Always allow big targets and check small targets
-func filterTargets(targets []int, path []int, allowOneDoubleVisit bool) []int {
+func filterTargets(targets []int, path []int, maxDoubleVisits int) []int {
 	filtered := []int{}
 	for _, targetId := range targets {
-		if targetId > 100 || isAllowed(targetId, path, allowOneDoubleVisit) {
+		if targetId < 0 || isAllowed(targetId, path, maxDoubleVisits) {
 			filtered = append(filtered, targetId)
 		}
 	}
@@ -72,38 +82,33 @@ func filterTargets(targets []int, path []int, allowOneDoubleVisit bool) []int {
 
 // A small target is not allowed if it's already visited
 // In part B one double visit is allowed
-func isAllowed(targetId int, path []int, allowOneDoubleVisit bool) bool {
-	found := map[int]bool{}
-	found[targetId] = true
+func isAllowed(targetId int, path []int, maxDoubleVisits int) bool {
 	countDoubleVisits := 0
-	for _, caveId := range path[1:] {
-		// Only check for previous double visits in small caves
-		if caveId >= 100 {
-			continue
-		}
-
-		if found[caveId] {
+	multiple := targetId
+	for _, caveId := range path {
+		exists := multiple%caveId == 0
+		if exists {
 			countDoubleVisits += 1
-			if countDoubleVisits == 1 && !allowOneDoubleVisit {
-				return false
-			}
-			if countDoubleVisits == 2 {
+			if countDoubleVisits > maxDoubleVisits {
 				return false
 			}
 		} else {
-			found[caveId] = true
+			multiple *= caveId
 		}
 	}
 	return true
 }
 
-const START_CAVE_ID int = 100
-const END_CAVE_ID int = 101
+const START_CAVE_ID int = -100
+const END_CAVE_ID int = -101
+const BIG_CAVE_START_ID int = -200
 
 // Convert input to caves
 func convertLinesToCaves(lines []string) map[int][]int {
+	bigCaveId := BIG_CAVE_START_ID
+
 	smallCaveId := 0
-	bigCaveId := 200
+	primes := []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
 
 	caves := map[int][]int{}
 	idLookup := map[string]int{}
@@ -119,11 +124,11 @@ func convertLinesToCaves(lines []string) map[int][]int {
 					caveId = END_CAVE_ID
 					// A = 65, Z = 90, a = 97, z = 122, lowercase is > 90
 				} else if caveKey[0] > 90 {
-					caveId = smallCaveId
+					caveId = primes[smallCaveId]
 					smallCaveId += 1
 				} else {
 					caveId = bigCaveId
-					bigCaveId += 1
+					bigCaveId -= 1
 				}
 				caves[caveId] = []int{}
 				idLookup[caveKey] = caveId
