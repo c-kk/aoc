@@ -11,6 +11,7 @@ func main() {
 	bytes, _ := ioutil.ReadFile("data.txt")
 	puzzleInput := string(bytes)
 	start := time.Now()
+	fmt.Println("Solution for 2021 day 12 using Breadth-first search (BFS)")
 	fmt.Println(Answer1(puzzleInput))
 	fmt.Println(Answer2(puzzleInput))
 	fmt.Println("Time elapsed", time.Since(start))
@@ -45,15 +46,8 @@ func countPossiblePaths(puzzleInput string, maxDoubleVisits int) int {
 				activePath = activePath[:len(activePath)-1]
 			}
 
-			activePrime := 1
-			for _, prime := range activePath {
-				activePrime *= prime
-			}
-			activePath = []int{activePrime}
-			// fmt.Println(caveId, activePath)
-
 			targets := caves[caveId]
-			targets = filterTargets(targets, activePrime, maxDoubleVisits)
+			targets = filterTargets(targets, activePath, maxDoubleVisits)
 
 			for key, targetId := range targets {
 				if key == len(targets)-1 {
@@ -72,10 +66,10 @@ func countPossiblePaths(puzzleInput string, maxDoubleVisits int) int {
 	return countFinishedPaths
 }
 
-func filterTargets(targets []int, activePrime int, maxDoubleVisits int) []int {
+func filterTargets(targets []int, path []int, maxDoubleVisits int) []int {
 	filtered := []int{}
 	for _, targetId := range targets {
-		if isAllowed(targetId, activePrime, maxDoubleVisits) {
+		if isAllowed(targetId, path, maxDoubleVisits) {
 			filtered = append(filtered, targetId)
 		}
 	}
@@ -83,64 +77,23 @@ func filterTargets(targets []int, activePrime int, maxDoubleVisits int) []int {
 }
 
 // Always allow big targets. Small target can only be visited once or twice
-func isAllowed(targetId int, activePrime int, maxDoubleVisits int) bool {
-
+func isAllowed(targetId int, path []int, maxDoubleVisits int) bool {
 	if targetId < 0 {
 		return true
 	}
-
-	if activePrime%targetId == 0 {
-		if maxDoubleVisits == 1 {
-			smaller := activePrime / targetId
-			if smaller%targetId == 0 {
+	countDoubleVisits := 0
+	multiple := targetId
+	for _, caveId := range path {
+		if multiple%caveId == 0 {
+			countDoubleVisits += 1
+			if countDoubleVisits > maxDoubleVisits {
 				return false
 			}
-
-			factor := findFactor(smaller)
-			if factor != 0 {
-				smallest := smaller / factor
-				factor := findFactor(smallest)
-				if factor != 0 {
-					return false
-				}
-			}
-			// fmt.Println(activePrime, targetId, activePrime/targetId)
 		} else {
-			return false
+			multiple *= caveId
 		}
-
 	}
-
 	return true
-
-	// countDoubleVisits := 0
-	// multiple := targetId
-	// for _, caveId := range path {
-	// 	if multiple%caveId == 0 {
-	// 		countDoubleVisits += 1
-	// 		if countDoubleVisits > maxDoubleVisits {
-	// 			return false
-	// 		}
-	// 	} else {
-	// 		multiple *= caveId
-	// 	}
-	// }
-	// return true
-}
-
-func findFactor(number int) int {
-	primes := []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541}
-	fmt.Println(number)
-	for _, prime := range primes {
-		if prime > number {
-			return 0
-		}
-		modulo := number % prime
-		if modulo == 0 {
-			return prime
-		}
-	}
-	return 0
 }
 
 // Small caves have positive id's, the other caves have negative id's
