@@ -9,7 +9,7 @@ import (
 // Console commands to start working on a new Advent of Code day
 // open https://adventofcode.com/2021/day/11
 // cd ~/code/aoc/2021-go
-// cp -R day00 day11 && cd day11 && edit go.mod && edit solve_test.go && edit data.txt && edit solve.go
+// cp -R day00 day14 && cd day14 && edit go.mod && edit solve_test.go && edit data.txt && edit solve.go
 // goautotest
 
 // Print a slice with one item per line
