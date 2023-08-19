@@ -1,1 +1,0 @@
-lines = open("data.txt").read().split('\n')
