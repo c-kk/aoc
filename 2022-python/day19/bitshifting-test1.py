@@ -69,5 +69,3 @@ updated_integer = set_nth_number(test_integer, 2, 7)
 updated_list = int_to_list(updated_integer)
 
 print(retrieved_value, updated_list)
-
-# 

@@ -10,11 +10,6 @@ filename = "data1.txt" if data_version != "2" else "data2.txt"
 lines = open(filename).read().split('\n')
 BLUEPRINTS = [string_to_numbers(line)[1:] for line in lines]
 COSTS = [np.array(l) for l in [[[bp[0], 0, 0, 0],[bp[1], 0, 0, 0],[bp[2], bp[3], 0, 0],[bp[4], 0, bp[5], 0]] for bp in BLUEPRINTS]]
-# NEW_BOTS = [np.array(l) for l in [[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0],[0, 0, 0, 1]]]
-# decisions = [[1, 0, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0]]
-# def print_decisions(decisions):
-#     print(''.join([str(minute % 10) for minute,_ in enumerate(decisions)]))
-#     for i in range(4): print(''.join([str(decision[i]) for decision in decisions]))
 
 def calculate_geo_at_end(bots_to_build, bp_index, max_minutes):
     # print('To build:', bots_to_build)
@@ -178,8 +173,3 @@ max_geodes_per_bp = solve_blueprints(len(BLUEPRINTS), 24)
 score_part1 = sum([(bp_index + 1) * max_geodes for bp_index, max_geodes in enumerate(max_geodes_per_bp)])
 print("Max geodes:", max_geodes_per_bp)
 print("Score part 1:", score_part1)
-exit()
-
-print_decisions(decisions)
-
-
