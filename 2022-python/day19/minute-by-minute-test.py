@@ -135,3 +135,12 @@ bp_count = runs * (len(blueprints_example) + len(blueprints_example[0:3]) + len(
 print(f'{runs} runs, loops per bp {loop_count/bp_count:.0f}')
 print(f'Time needed for example {time_example:.2f} ms')
 print(f'Time needed for puzzle {time_puzzle:.2f} ms')
+
+# *** Scores ***
+# Score part 1 for example: 33 
+# Score part 2 for example: 3472 
+# Score part 1 for puzzle: 1413 
+# Score part 2 for puzzle: 21080 
+# 20 runs, loops per bp 327
+# Time needed for example 12.60 ms
+# Time needed for puzzle 8.72 ms
