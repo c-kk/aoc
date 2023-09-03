@@ -1,15 +1,18 @@
 import re
 import time
 from functools import reduce
+from collections import defaultdict
 
 def string_to_numbers(string): return [int(d) for d in re.findall("(-?\d+)", string)]
 
-data_version = input("Data version (1 or 2): ")
-filename = "data1.txt" if data_version != "2" else "data2.txt"
-lines = open(filename).read().split('\n')
-blueprints = [tuple(string_to_numbers(line)[1:]) for line in lines]
+blueprints_example = [tuple(string_to_numbers(line)[1:]) for line in open('data1.txt').read().split('\n')]
+blueprints_puzzle = [tuple(string_to_numbers(line)[1:]) for line in open('data2.txt').read().split('\n')]
 
 def max_geo_possible(minute, cla, obs, geo, cla_bot, obs_bot):
+    global max_geo_possible_mem
+    state = (minute, cla, obs, geo, cla_bot, obs_bot)
+    if state in max_geo_possible_mem: return max_geo_possible_mem[state]
+
     # Calculate the max_geo_possible fast with special rules
     # - Try to produce 1 bot of each type every minute
     # - All ore costs are zero: geo_bot cost only obs, obs_bot cost only cla, cla_bot is free
@@ -37,18 +40,19 @@ def max_geo_possible(minute, cla, obs, geo, cla_bot, obs_bot):
             geo += minute - 1
         
         minute -= 1
+    max_geo_possible_mem[state] = geo
     return geo
 
 def do_minute(minute, ore, cla, obs, geo, ore_bot, cla_bot, obs_bot, ore_bot_allowed = True, cla_bot_allowed = True): 
-    global memo, max_geo_found, loop_count
+    global minute_mem, max_geo_found, loop_count
     
     loop_count += 1
 
     ## Do a single thing if next action is obvious
     # Finish when current state was already visited
     state = (minute, ore, cla, obs, geo, ore_bot, cla_bot, obs_bot)
-    if state in memo: return
-    memo.add(state)
+    if state in minute_mem: return
+    minute_mem.add(state)
 
     # Finish in the last minute
     if minute == 1: 
@@ -74,28 +78,29 @@ def do_minute(minute, ore, cla, obs, geo, ore_bot, cla_bot, obs_bot, ore_bot_all
     if obs_bot_maybe_needed and can_build_obs_bot: 
         do_minute(minute - 1, ore + ore_bot - ore_cos2, cla + cla_bot - cla_cos, obs + obs_bot, geo, ore_bot, cla_bot, obs_bot + 1)
     
-    # Build cla bot if maybe needed and possible and allowed
-    cla_bot_maybe_needed = minute > 5 + cla - cla_cos and cla_bot < cla_cos
-    can_build_cla_bot = ore >= ore_cos1
-    if cla_bot_maybe_needed and can_build_cla_bot and cla_bot_allowed: 
-        do_minute(minute - 1, ore + ore_bot - ore_cos1, cla + cla_bot, obs + obs_bot, geo, ore_bot, cla_bot + 1, obs_bot)
-
     # Build ore bot if maybe needed and possible and allowed
     ore_bot_maybe_needed = ore_bot < max_ore_cos
     can_build_ore_bot = ore >= ore_cos0 
     if ore_bot_maybe_needed and can_build_ore_bot and ore_bot_allowed: 
         do_minute(minute - 1, ore + ore_bot - ore_cos0, cla + cla_bot, obs + obs_bot, geo, ore_bot + 1, cla_bot, obs_bot)
 
+    # Build cla bot if maybe needed and possible and allowed
+    cla_bot_maybe_needed = minute > 5 + cla - cla_cos and cla_bot < cla_cos
+    can_build_cla_bot = ore >= ore_cos1
+    if cla_bot_maybe_needed and can_build_cla_bot and cla_bot_allowed: 
+        do_minute(minute - 1, ore + ore_bot - ore_cos1, cla + cla_bot, obs + obs_bot, geo, ore_bot, cla_bot + 1, obs_bot)
+    
     # Do nothing. Disallow building an ore bot or cla bot in the next minute, if building this bot was possible in this minute. Don't wait for nothing.
     ore_bot_allowed = not can_build_ore_bot
     cla_bot_allowed = not can_build_cla_bot
     do_minute(minute - 1, ore + ore_bot, cla + cla_bot, obs + obs_bot, geo, ore_bot, cla_bot, obs_bot, ore_bot_allowed, cla_bot_allowed)
 
 def solve(blueprints, minute):
-    global memo, max_geo_found, ore_cos0, ore_cos1, ore_cos2, cla_cos, ore_cos3, obs_cos, max_ore_cos
+    global minute_mem, max_geo_possible_mem, max_geo_found, ore_cos0, ore_cos1, ore_cos2, cla_cos, ore_cos3, obs_cos, max_ore_cos
     max_geo_founds = []
     for bp in blueprints:
-        memo = set()
+        minute_mem = set()
+        max_geo_possible_mem = defaultdict(int)
         max_geo_found = 0
         ore_cos0, ore_cos1, ore_cos2, cla_cos, ore_cos3, obs_cos = bp
         max_ore_cos = max(ore_cos0, ore_cos1, ore_cos2, ore_cos3)
@@ -104,18 +109,26 @@ def solve(blueprints, minute):
         # print(bp, max_geo_found)
     return max_geo_founds
 
+runs = 20
 start = time.perf_counter()
 loop_count = 0
-for _ in range(10):
-    max_geo_founds = solve(blueprints, 24)
-    score_part1 = sum([(bp_index + 1) * max_geo_found for bp_index, max_geo_found in enumerate(max_geo_founds)])
-    max_geo_founds = solve(blueprints[0:3], 32)
-    score_part2 = reduce(lambda x, y: x * y, max_geo_founds)
+for _ in range(runs):
+    max_geo_founds = solve(blueprints_example, 24)
+    score_part1_example = sum([(bp_index + 1) * max_geo_found for bp_index, max_geo_found in enumerate(max_geo_founds)])
+    max_geo_founds = solve(blueprints_example[0:3], 32)
+    score_part2_example = reduce(lambda x, y: x * y, max_geo_founds)
+
+    max_geo_founds = solve(blueprints_puzzle, 24)
+    score_part1_puzzle = sum([(bp_index + 1) * max_geo_found for bp_index, max_geo_found in enumerate(max_geo_founds)])
+    max_geo_founds = solve(blueprints_puzzle[0:3], 32)
+    score_part2_puzzle = reduce(lambda x, y: x * y, max_geo_founds)
 
 print("*** Scores ***")
-print("Score part 1:", score_part1)
-print("Score part 2:", score_part2)
+print("Score part 1 for example:", score_part1_example, "" if score_part1_example == 33 else "X!")
+print("Score part 2 for example:", score_part2_example, "" if score_part2_example == 3348 else "X!")
+print("Score part 1 for puzzle:", score_part1_puzzle, "" if score_part1_puzzle == 1413 else "X!")
+print("Score part 2 for puzzle:", score_part2_puzzle, "" if score_part2_puzzle == 21080 else "X!")
 
 delta = (time.perf_counter() - start) * 1000
-print(f'10 runs with average time per run: {(delta/10):.2f} ms')
-print(loop_count, "loops")
+bp_count = runs * (len(blueprints_example) + len(blueprints_example[0:3]) + len(blueprints_puzzle) + len(blueprints_puzzle[0:3]))
+print(f'{runs} runs, average time per run {(delta/runs):.2f} ms, loops per bp {loop_count/bp_count:.0f}')
