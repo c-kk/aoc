@@ -6,15 +6,15 @@ for line in lines:
     
 # Part 1
 print("*** Part 1 ***")
-
 exit()
 score_part1 = 0
+
 print("Score part 1:", score_part1)
 
 # Part 2
 print("*** Part 2 ***")
-
 score_part2 = 0
+
 print("Score part 2:", score_part2)
 
 print("*** Scores ***")
