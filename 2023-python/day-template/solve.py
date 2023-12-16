@@ -3,10 +3,10 @@ filename = "data1.txt" if data_version != "2" else "data2.txt"
 lines = open(filename).read().split('\n')
 for line in lines:
     print(line)
-    
+exit()
+
 # Part 1
 print("*** Part 1 ***")
-exit()
 score_part1 = 0
 
 print("Score part 1:", score_part1)
