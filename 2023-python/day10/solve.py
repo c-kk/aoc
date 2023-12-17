@@ -41,11 +41,11 @@ next_char_connects_dict = {
 }
 
 char_exits_dict = {
-    '└': ['north', 'east'],
-    '┘': ['north', 'west'],
-    '┐': ['south', 'west'],
+    '└': ['east', 'north'],
+    '┘': ['west', 'north'],
+    '┐': ['west', 'south'],
     '┌': ['south', 'east'],
-    '│': ['north', 'south'],
+    '│': ['south', 'north'],
     '─': ['west', 'east']
 }
 
@@ -74,7 +74,9 @@ print_map(rows)
 # Build loop
 loop_positions = [start_position]
 current_position = start_position
-current_direction = char_exits_dict[start_char][0]
+current_exits = char_exits_dict[start_char]
+current_direction = current_exits[0]
+
 
 while True:
     dy, dx = directions[current_direction]
@@ -168,7 +170,26 @@ while to_check_count > 0:
 print_map(rows)
 
 score_part2 = sum(char == '.' for row in rows for char in row)
-print("Score part 2:", score_part2)
+print("Score part 2 (using flood filling):", score_part2)
+
+# Alternative solution using Shoelace formula and Pick's theorem
+# Inspired by: https://github.com/ianmihura/advent23/blob/master/day_10/day_10.go
+
+# Shoelace formula
+path = loop_positions.copy()
+path.reverse() # Go clockwise for a positive area
+
+trailing = 0
+for i in range(len(path)):
+    if i == len(path) - 1:
+        trailing += (path[i][0] + path[0][0]) * (path[i][1] - path[0][1])
+    else:
+        trailing += (path[i][0] + path[i+1][0]) * (path[i][1] - path[i+1][1])
+area = trailing / 2
+
+# Pick's theorem
+inner = int(area - (len(path) / 2) + 1)
+print("Score part 2 (using Shoelace formula and Pick's theorem):", inner)
 
 print("*** Scores ***")
 print("Score part 1:", score_part1)
